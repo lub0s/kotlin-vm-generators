@@ -1,5 +1,6 @@
 package com.example.generator
 
+import com.example.annotations.ContributesViewModel
 import com.google.auto.service.AutoService
 import com.squareup.anvil.annotations.ContributesTo
 import com.squareup.anvil.annotations.ExperimentalAnvilApi

@@ -18,3 +18,4 @@ rootProject.name = "Anvils"
 
 include ':app'
 include ':generator'
+include ':annotations'
