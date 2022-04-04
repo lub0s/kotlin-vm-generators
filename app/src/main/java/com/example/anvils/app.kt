@@ -7,7 +7,9 @@ import javax.inject.Provider
 
 class Appka : Application() {
 
-  private lateinit var appComponent: AppComponent
+  companion object {
+    lateinit var appComponent: AppComponent
+  }
 
   override fun onCreate() {
     super.onCreate()
