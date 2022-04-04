@@ -12,12 +12,12 @@ typealias ViewModelMap = Map<Class<out ViewModel>, @JvmSuppressWildcards Provide
 
 //@ContributesMultibinding(AppScope::class)
 //@ViewModelKey(MainViewModel::class)
-@ContributesViewModel(ViewModelComponent::class)
+@ContributesViewModel(ViewModelScope::class)
 class MainViewModel @Inject constructor(
   val provider: StringsProvider
 ): ViewModel()
 
-@ContributesViewModel(ViewModelComponent::class)
+@ContributesViewModel(ViewModelScope::class)
 class MainViewModelB @Inject constructor(
   val provider: StringsProvider
 ): ViewModel()
