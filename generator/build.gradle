@@ -2,7 +2,7 @@ plugins {
   id 'org.jetbrains.kotlin.jvm'
   id 'java-library'
   id 'org.jetbrains.kotlin.kapt'
-  id 'com.squareup.anvil' version "2.3.11"
+  id 'com.squareup.anvil' version "2.3.11-1-6-10"
 }
 
 apply from: rootProject.file("deps.gradle")
@@ -11,8 +11,8 @@ dependencies {
   implementation project(":annotations")
   implementation deps.dagger2.dagger
 
-  api "com.squareup.anvil:compiler-api:2.3.11"
-  api "com.squareup.anvil:compiler-utils:2.3.11"
+  api "com.squareup.anvil:compiler-api:2.3.11-1-6-10"
+  api "com.squareup.anvil:compiler-utils:2.3.11-1-6-10"
 
   compileOnly "com.squareup:kotlinpoet:1.10.1"
   compileOnly "com.google.auto.service:auto-service-annotations:1.0"

@@ -52,7 +52,7 @@ class Lubosek : CodeGenerator {
   override fun generateCode(codeGenDir: File, module: ModuleDescriptor, projectFiles: Collection<KtFile>): Collection<GeneratedFile> {
     return projectFiles.classesAndInnerClass(module)
       .filter { it.hasAnnotation(ContributesViewModel::class.fqName, module) }
-      .flatMap { listOf(generateModule(it, codeGenDir, module) , generateAssistedFactory(it, codeGenDir, module)) } //, generateAssistedFactory(it, codeGenDir, module)
+      .flatMap { listOf(generateModule(it, codeGenDir, module)) } //, generateAssistedFactory(it, codeGenDir, module)
       .toList()
   }
 
@@ -69,8 +69,8 @@ class Lubosek : CodeGenerator {
           .addFunction(
             FunSpec.builder("bind${vmClass.name}Factory")
               .addModifiers(KModifier.ABSTRACT)
-              .addParameter("factory", ClassName(generatedPackage, "${vmClass.name}_AssistedFactory"))
-              .returns(viewModelFactoryFqName.asClassName(module).parameterizedBy(STAR))
+              .addParameter("factory", ClassName(generatedPackage, "${vmClass.name}"))
+              .returns(viewModelFqn.asClassName(module))
               .addAnnotation(Binds::class)
               .addAnnotation(IntoMap::class)
               .addAnnotation(AnnotationSpec.builder(viewModelKeyFqName.asClassName(module)).addMember("%T::class", vmClass.asClassName()).build())
@@ -89,7 +89,7 @@ class Lubosek : CodeGenerator {
 
     if (constructor == null) {
       throw AnvilCompilationException(
-        "${vmClass.requireFqName()} must have an @Inject constructor",
+        "${vmClass.requireFqName()} must have an @AssistedInject constructor",
         element = vmClass.identifyingElement,
       )
     }
@@ -97,8 +97,8 @@ class Lubosek : CodeGenerator {
     val vmClassName = vmClass.asClassName()
     val content = FileSpec.buildFile(generatedPackage, assistedFactoryClassName) {
       addType(
-        TypeSpec.interfaceBuilder(assistedFactoryClassName)
-          .addSuperinterface(viewModelFactoryFqName.asClassName(module).parameterizedBy(vmClassName))
+        TypeSpec.interfaceBuilder("${vmClass.name}_Factory")
+          //.addSuperinterface(viewModelFactoryFqName.asClassName(module).parameterizedBy(vmClassName))
           .addAnnotation(AssistedFactory::class)
           .addFunction(
             FunSpec.builder("create")
@@ -113,6 +113,7 @@ class Lubosek : CodeGenerator {
   }
 
   companion object {
+    private val viewModelFqn = FqName("androidx.lifecycle.ViewModel")
     private val viewModelFactoryFqName = FqName("com.example.anvils.ViewModelFactory")
     private val viewModelKeyFqName = FqName("com.example.anvils.ViewModelKey")
   }

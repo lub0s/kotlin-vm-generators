@@ -10,17 +10,16 @@ import javax.inject.Singleton
 @Singleton
 @MergeComponent(AppScope::class)
 interface AppComponent {
-  //fun getSubcomponentFactory(): ViewModelComponent.Factory
-  fun getViewModelMap(): ViewModelMap
+  fun getSubcomponentFactory(): ViewModelComponent.Factory
 }
 
-// @MergeSubcomponent(ViewModelScope::class)
-// interface ViewModelComponent {
-//
-//   fun getViewModelMap(): ViewModelMap
-//
-//   @Subcomponent.Factory
-//   interface Factory {
-//     fun create(@BindsInstance savedStateHandle: SavedStateHandle): ViewModelComponent
-//   }
-// }
+@MergeSubcomponent(ViewModelScope::class)
+interface ViewModelComponent {
+
+  fun getViewModelMap(): ViewModelMap
+
+  @Subcomponent.Factory
+  interface Factory {
+    fun create(@BindsInstance savedStateHandle: SavedStateHandle): ViewModelComponent
+  }
+}
