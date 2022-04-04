@@ -118,3 +118,16 @@ class Lubosek : CodeGenerator {
     private val viewModelKeyFqName = FqName("com.example.anvils.ViewModelKey")
   }
 }
+
+// expected =>
+//
+// @Module
+// @ContributesTo(com.example.anvils.AppScope::class)
+// public abstract class AppComponentAnvilModule {
+//   @Binds
+//   @IntoMap
+//   @ViewModelKey(value = MainViewModel::class)
+//   public abstract fun bindComExampleAnvilsMainViewModelViewModelMulti(mainViewModel: MainViewModel):
+//     ViewModel
+// }
+//

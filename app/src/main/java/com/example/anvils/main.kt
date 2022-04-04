@@ -14,9 +14,9 @@ class MainActivity : AppCompatActivity() {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
 
-    val vm: MainViewModel =
-      Appka.appComponent.getSubcomponentFactory().create(SavedStateHandle()).getViewModelMap()[MainViewModel::class.java]!!.get() as MainViewModel
-
-    findViewById<TextView>(R.id.text).text = vm.provider.a
+    // val vm: MainViewModel =
+    //   Appka.appComponent.getSubcomponentFactory().create(SavedStateHandle()).getViewModelMap()[MainViewModel::class.java]!!.get() as MainViewModel
+    //
+    // findViewById<TextView>(R.id.text).text = vm.provider.a
   }
 }

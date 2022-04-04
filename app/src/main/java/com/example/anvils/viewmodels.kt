@@ -17,6 +17,11 @@ class MainViewModel @Inject constructor(
   val provider: StringsProvider
 ): ViewModel()
 
+@ContributesViewModel(ViewModelComponent::class)
+class MainViewModelB @Inject constructor(
+  val provider: StringsProvider
+): ViewModel()
+
 // interface ViewModelFactory<VM : ViewModel> {
 //   fun create(): VM
 // }
