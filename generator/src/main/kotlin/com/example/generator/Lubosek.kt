@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.allConstructors
 import java.io.File
-
+import javax.inject.Inject
 
 // https://gist.github.com/gpeal/d29fc2e6e4ebd551865390826412493e
 // https://gpeal.medium.com/dagger-anvil-learning-to-love-dependency-injection-on-android-8fad3d5530c9
@@ -52,7 +52,7 @@ class Lubosek : CodeGenerator {
   override fun generateCode(codeGenDir: File, module: ModuleDescriptor, projectFiles: Collection<KtFile>): Collection<GeneratedFile> {
     return projectFiles.classesAndInnerClass(module)
       .filter { it.hasAnnotation(ContributesViewModel::class.fqName, module) }
-      .flatMap { listOf(generateModule(it, codeGenDir, module), generateAssistedFactory(it, codeGenDir, module)) }
+      .flatMap { listOf(generateModule(it, codeGenDir, module) , generateAssistedFactory(it, codeGenDir, module)) } //, generateAssistedFactory(it, codeGenDir, module)
       .toList()
   }
 
@@ -70,7 +70,7 @@ class Lubosek : CodeGenerator {
             FunSpec.builder("bind${vmClass.name}Factory")
               .addModifiers(KModifier.ABSTRACT)
               .addParameter("factory", ClassName(generatedPackage, "${vmClass.name}_AssistedFactory"))
-              .returns(viewModelFactoryFqName.asClassName(module).parameterizedBy(STAR, STAR))
+              .returns(viewModelFactoryFqName.asClassName(module).parameterizedBy(STAR))
               .addAnnotation(Binds::class)
               .addAnnotation(IntoMap::class)
               .addAnnotation(AnnotationSpec.builder(viewModelKeyFqName.asClassName(module)).addMember("%T::class", vmClass.asClassName()).build())
@@ -86,30 +86,23 @@ class Lubosek : CodeGenerator {
     val generatedPackage = vmClass.containingKtFile.packageFqName.toString()
     val assistedFactoryClassName = "${vmClass.name}_AssistedFactory"
     val constructor = vmClass.allConstructors.singleOrNull { it.hasAnnotation(AssistedInject::class.fqName, module) }
-    val assistedParameter = constructor?.valueParameters?.singleOrNull { it.hasAnnotation(Assisted::class.fqName, module) }
-    if (constructor == null || assistedParameter == null) {
+
+    if (constructor == null) {
       throw AnvilCompilationException(
-        "${vmClass.requireFqName()} must have an @AssistedInject constructor with @Assisted initialState: S parameter",
+        "${vmClass.requireFqName()} must have an @Inject constructor",
         element = vmClass.identifyingElement,
       )
     }
-    if (assistedParameter.name != "initialState") {
-      throw AnvilCompilationException(
-        "${vmClass.requireFqName()} @Assisted parameter must be named initialState",
-        element = assistedParameter.identifyingElement,
-      )
-    }
+
     val vmClassName = vmClass.asClassName()
-    val stateClassName = assistedParameter.requireTypeReference(module).requireFqName(module).asClassName(module)
     val content = FileSpec.buildFile(generatedPackage, assistedFactoryClassName) {
       addType(
         TypeSpec.interfaceBuilder(assistedFactoryClassName)
-          .addSuperinterface(viewModelFactoryFqName.asClassName(module).parameterizedBy(vmClassName, stateClassName))
+          .addSuperinterface(viewModelFactoryFqName.asClassName(module).parameterizedBy(vmClassName))
           .addAnnotation(AssistedFactory::class)
           .addFunction(
             FunSpec.builder("create")
               .addModifiers(KModifier.OVERRIDE, KModifier.ABSTRACT)
-              .addParameter("initialState", stateClassName)
               .returns(vmClassName)
               .build(),
           )
@@ -120,7 +113,7 @@ class Lubosek : CodeGenerator {
   }
 
   companion object {
-    private val viewModelFactoryFqName = FqName("com.example.generator.ExampleViewModelFactory")
-    private val viewModelKeyFqName = FqName("com.example.generator.ViewModelKey")
+    private val viewModelFactoryFqName = FqName("com.example.anvils.ViewModelFactory")
+    private val viewModelKeyFqName = FqName("com.example.anvils.ViewModelKey")
   }
 }

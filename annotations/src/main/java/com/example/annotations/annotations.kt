@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ContributesViewModel(
-  val scope: KClass<Any>
+  val scope: KClass<out Any>
 )
 
 //
