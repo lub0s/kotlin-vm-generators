@@ -1,41 +1,18 @@
 plugins {
-  id 'java-library'
   id 'org.jetbrains.kotlin.jvm'
-  //  id 'com.android.library'
-  //  id 'org.jetbrains.kotlin.android'
+  id 'java-library'
   id 'org.jetbrains.kotlin.kapt'
-  id 'com.squareup.anvil' version "2.4.0"
+  id 'com.squareup.anvil' version "2.3.11"
 }
 
 apply from: rootProject.file("deps.gradle")
 
-//android {
-//  compileSdk 31
-//
-//  defaultConfig {
-//    minSdk 29
-//    targetSdk 31
-//  }
-//
-//  compileOptions {
-//    sourceCompatibility JavaVersion.VERSION_1_8
-//    targetCompatibility JavaVersion.VERSION_1_8
-//  }
-//
-//  kotlinOptions {
-//    jvmTarget = '1.8'
-//  }
-//}
-
 dependencies {
   implementation project(":annotations")
-
-//  implementation 'androidx.core:core-ktx:1.7.0'
-//  implementation 'androidx.appcompat:appcompat:1.4.1'
   implementation deps.dagger2.dagger
 
-  api "com.squareup.anvil:compiler-api:2.4.0"
-  api "com.squareup.anvil:compiler-utils:2.4.0"
+  api "com.squareup.anvil:compiler-api:2.3.11"
+  api "com.squareup.anvil:compiler-utils:2.3.11"
 
   compileOnly "com.squareup:kotlinpoet:1.10.1"
   compileOnly "com.google.auto.service:auto-service-annotations:1.0"
