@@ -1,5 +1,6 @@
 package com.example.anvils
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.annotations.ContributesViewModel
 import com.squareup.anvil.annotations.ContributesMultibinding
@@ -9,9 +10,6 @@ import javax.inject.Provider
 
 typealias ViewModelMap = Map<Class<out ViewModel>, @JvmSuppressWildcards Provider<ViewModel>>
 
-
-//@ContributesMultibinding(AppScope::class)
-//@ViewModelKey(MainViewModel::class)
 @ContributesViewModel(ViewModelScope::class)
 class MainViewModel @Inject constructor(
   val provider: StringsProvider
@@ -19,9 +17,9 @@ class MainViewModel @Inject constructor(
 
 @ContributesViewModel(ViewModelScope::class)
 class MainViewModelB @Inject constructor(
-  val provider: StringsProvider
-): ViewModel()
-
-// interface ViewModelFactory<VM : ViewModel> {
-//   fun create(): VM
-// }
+  provider: StringsProvider
+): ViewModel() {
+  init {
+      Log.e("ttt", provider.a)
+  }
+}

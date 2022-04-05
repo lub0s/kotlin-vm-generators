@@ -45,7 +45,7 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalAnvilApi::class)
 @AutoService(CodeGenerator::class)
-class Lubosek : CodeGenerator {
+class VMSGenerator : CodeGenerator {
 
   override fun isApplicable(context: AnvilContext): Boolean  = true
 
