@@ -1,29 +1,30 @@
 package com.example.anvils
 
-import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.example.annotations.ContributesViewModel
-import com.squareup.anvil.annotations.ContributesMultibinding
+import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import javax.inject.Inject
 import javax.inject.Provider
 
 typealias ViewModelMap = Map<Class<out ViewModel>, @JvmSuppressWildcards Provider<ViewModelFactory<*>>>
 
+interface ViewModelFactory<T: ViewModel> {
+  fun create(handle: SavedStateHandle): T
+}
+
 @ContributesViewModel(ViewModelScope::class)
 class MainViewModel @AssistedInject constructor(
-  val provider: StringsProvider
+  val provider: StringsProvider,
+  @Assisted private val savedStateHandle: SavedStateHandle
 ): ViewModel()
 
 @ContributesViewModel(ViewModelScope::class)
 class MainViewModelB @AssistedInject constructor(
-  provider: StringsProvider
+  provider: StringsProvider,
+  @Assisted private val savedStateHandle: SavedStateHandle
 ): ViewModel() {
   init {
-      Log.e("ttt", provider.a)
+    tag(provider.a)
   }
-}
-
-interface ViewModelFactory<T: ViewModel> {
-  fun create(): T
 }
