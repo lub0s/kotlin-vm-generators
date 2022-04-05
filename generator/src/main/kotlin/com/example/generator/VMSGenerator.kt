@@ -13,17 +13,15 @@ import com.squareup.anvil.compiler.internal.asClassName
 import com.squareup.anvil.compiler.internal.buildFile
 import com.squareup.anvil.compiler.internal.classesAndInnerClass
 import com.squareup.anvil.compiler.internal.fqName
-import com.squareup.anvil.compiler.internal.fqNameOrNull
 import com.squareup.anvil.compiler.internal.hasAnnotation
 import com.squareup.anvil.compiler.internal.requireFqName
-import com.squareup.anvil.compiler.internal.requireTypeReference
 import com.squareup.anvil.compiler.internal.scope
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
-import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.STAR
 import com.squareup.kotlinpoet.TypeSpec
 import dagger.Binds
@@ -38,7 +36,6 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.allConstructors
 import java.io.File
-import javax.inject.Inject
 
 // https://gist.github.com/gpeal/d29fc2e6e4ebd551865390826412493e
 // https://gpeal.medium.com/dagger-anvil-learning-to-love-dependency-injection-on-android-8fad3d5530c9
@@ -52,7 +49,7 @@ class VMSGenerator : CodeGenerator {
   override fun generateCode(codeGenDir: File, module: ModuleDescriptor, projectFiles: Collection<KtFile>): Collection<GeneratedFile> {
     return projectFiles.classesAndInnerClass(module)
       .filter { it.hasAnnotation(ContributesViewModel::class.fqName, module) }
-      .flatMap { listOf(generateModule(it, codeGenDir, module)) } //, generateAssistedFactory(it, codeGenDir, module)
+      .flatMap { listOf(generateModule(it, codeGenDir, module), generateAssistedFactory(it, codeGenDir, module)) }
       .toList()
   }
 
@@ -60,6 +57,8 @@ class VMSGenerator : CodeGenerator {
     val generatedPackage = vmClass.containingKtFile.packageFqName.toString()
     val moduleClassName = "${vmClass.name}_Module"
     val scope = vmClass.scope(ContributesViewModel::class.fqName, module)
+    val factoryName = ClassName(generatedPackage, "${vmClass.name}_AssistedFactory")
+
     val content = FileSpec.buildFile(generatedPackage, moduleClassName) {
       addType(
         TypeSpec.classBuilder(moduleClassName)
@@ -69,8 +68,8 @@ class VMSGenerator : CodeGenerator {
           .addFunction(
             FunSpec.builder("bind${vmClass.name}Factory")
               .addModifiers(KModifier.ABSTRACT)
-              .addParameter("factory", ClassName(generatedPackage, "${vmClass.name}"))
-              .returns(viewModelFqn.asClassName(module))
+              .addParameter("factory", factoryName)
+              .returns(viewModelFactoryFqName.asClassName(module).parameterizedBy(STAR))
               .addAnnotation(Binds::class)
               .addAnnotation(IntoMap::class)
               .addAnnotation(AnnotationSpec.builder(viewModelKeyFqName.asClassName(module)).addMember("%T::class", vmClass.asClassName()).build())
@@ -85,21 +84,22 @@ class VMSGenerator : CodeGenerator {
   private fun generateAssistedFactory(vmClass: KtClassOrObject, codeGenDir: File, module: ModuleDescriptor): GeneratedFile {
     val generatedPackage = vmClass.containingKtFile.packageFqName.toString()
     val assistedFactoryClassName = "${vmClass.name}_AssistedFactory"
-    val constructor = vmClass.allConstructors.singleOrNull { it.hasAnnotation(AssistedInject::class.fqName, module) }
+    val assistedConstructor = vmClass.allConstructors.singleOrNull { it.hasAnnotation(AssistedInject::class.fqName, module) }
+    val injectsSavedState = vmClass.allConstructors.any { it.getValueParameters().any { it.hasAnnotation(Assisted::class.fqName, module) } }
+    val vmClassName = vmClass.asClassName()
 
-    if (constructor == null) {
+    if (assistedConstructor == null) {
       throw AnvilCompilationException(
         "${vmClass.requireFqName()} must have an @AssistedInject constructor",
         element = vmClass.identifyingElement,
       )
     }
 
-    val vmClassName = vmClass.asClassName()
     val content = FileSpec.buildFile(generatedPackage, assistedFactoryClassName) {
       addType(
-        TypeSpec.interfaceBuilder("${vmClass.name}_Factory")
-          //.addSuperinterface(viewModelFactoryFqName.asClassName(module).parameterizedBy(vmClassName))
+        TypeSpec.interfaceBuilder("${vmClass.name}_AssistedFactory")
           .addAnnotation(AssistedFactory::class)
+          .addSuperinterface(viewModelFactoryFqName.asClassName(module).parameterizedBy(vmClassName))
           .addFunction(
             FunSpec.builder("create")
               .addModifiers(KModifier.OVERRIDE, KModifier.ABSTRACT)
@@ -113,7 +113,6 @@ class VMSGenerator : CodeGenerator {
   }
 
   companion object {
-    private val viewModelFqn = FqName("androidx.lifecycle.ViewModel")
     private val viewModelFactoryFqName = FqName("com.example.anvils.ViewModelFactory")
     private val viewModelKeyFqName = FqName("com.example.anvils.ViewModelKey")
   }
